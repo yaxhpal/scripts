@@ -1,0 +1,29 @@
+-- Report - Duplicate titles
+-- Module: Catalog
+-- Purpose: Checks for exact duplicates on author/title combo; download for full list (doesn't paginate)
+
+
+-- Check title and author combination
+SELECT GROUP_CONCAT(biblionumber SEPARATOR ', ') AS biblionumbers, title, author 
+FROM biblio 
+GROUP BY CONCAT(title,"/",author) HAVING COUNT(CONCAT(title,"/",author)) > 1;
+
+-- Also include copyright date
+SELECT GROUP_CONCAT(biblionumber SEPARATOR ', ') AS biblionumbers, title, author, copyrightdate 
+FROM biblio GROUP BY CONCAT(title,"/",author,"/",copyrightdate) 
+HAVING COUNT(CONCAT(title,"/",author,"/",copyrightdate)) > 1; 
+
+-- Metion the home branch
+SELECT GROUP_CONCAT(biblionumber SEPARATOR ', ') AS biblionumbers, title, author, copyrightdate 
+FROM biblio LEFT JOIN items USING (biblionumber) 
+WHERE items.homebranch = 'BL'
+GROUP BY CONCAT(title,"/",author,"/",copyrightdate) 
+HAVING COUNT(CONCAT(title,"/",author,"/",copyrightdate)) > 1; 
+
+
+SELECT GROUP_CONCAT(biblionumber SEPARATOR ', ') AS biblionumbers, title, author
+FROM biblio LEFT JOIN biblioitems USING (biblionumber) 
+LEFT JOIN items USING (biblionumber)
+WHERE items.homebranch = 'BL' AND biblioitems.itemtype = 'DVD'
+GROUP BY CONCAT(title,"/",author) 
+HAVING COUNT(CONCAT(title,"/",author)) > 1;

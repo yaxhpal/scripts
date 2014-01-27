@@ -1,0 +1,2 @@
+SELECT i.barcode, b.title, b.author FROM biblio b LEFT JOIN items i USING (biblionumber) 
+LEFT JOIN biblioitems m USING (biblionumber) WHERE i.wthdrawn > 0;
