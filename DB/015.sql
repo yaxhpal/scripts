@@ -15,39 +15,35 @@ WHERE items.itype = @itemtype
 AND   items.homebranch = @homebranch
 ORDER BY items.datelastseen DESC;
 
-
-
-
 -- List of titles issued out
-SELECT items.barcode, biblio.title, biblio.author, items.onloan as 'Issued Date', items.datelastseen
+SELECT items.barcode, biblio.title, biblio.author, items.datelastseen, 
+old_issues.issuedate, old_issues.returndate, items.onloan
 FROM items 
 LEFT JOIN biblio     ON  (items.biblionumber = biblio.biblionumber)
-WHERE items.itype = @itemtype 
-AND   items.homebranch = @homebranch
-AND   items.onloan IS NOT NULL
-ORDER BY items.datelastseen DESC;
-
--- List of titles issued out - 2
-SELECT items.barcode, biblio.title, biblio.author, items.datelastseen, old_issues.issuedate, old_issues.returndate
-FROM items 
-LEFT JOIN biblio     ON  (items.biblionumber = biblio.biblionumber)
+LEFT JOIN issues     ON  (items.itemnumber = issues.itemnumber)
 LEFT JOIN old_issues ON  (items.itemnumber = old_issues.itemnumber)
 WHERE items.itype = @itemtype 
 AND   items.homebranch = @homebranch
-AND   items.onloan IS NULL
-AND   old_issues.issuedate < @inventoryDate
-AND   @inventoryDate < old_issues.returndate
+AND   ((issues.itemnumber IS NOT NULL AND issues.issuedate < @inventoryDate) 
+      OR 
+      (old_issues.itemnumber IS NOT NULL AND old_issues.issuedate < @inventoryDate AND  @inventoryDate < old_issues.returndate))
+GROUP BY items.itemnumber
 ORDER BY items.datelastseen DESC;
 
 
 -- List of items in the library
-SELECT items.barcode, biblio.title, biblio.author, items.datelastseen
+SELECT items.barcode, biblio.title, biblio.author, items.datelastseen, issues.issuedate, old_issues.returndate
 FROM items 
 LEFT JOIN biblio     ON  (items.biblionumber = biblio.biblionumber)
+LEFT JOIN issues     ON  (items.itemnumber = issues.itemnumber)
+LEFT JOIN old_issues ON  (items.itemnumber = old_issues.itemnumber)
 WHERE items.itype = @itemtype 
 AND   items.homebranch = @homebranch
-AND   items.onloan IS NULL
-ORDER BY items.datelastseen DESC;
+AND   ((issues.itemnumber IS NULL OR issues.issuedate > @inventoryDate))
+AND   ((old_issues.itemnumber IS NULL OR (old_issues.returndate < @inventoryDate OR old_issues.issuedate > @inventoryDate)))
+GROUP BY items.itemnumber
+ORDER BY  issues.issuedate DESC;
+
 
 -- List of items scanned
 SELECT items.barcode, biblio.title, biblio.author, items.dateaccessioned
