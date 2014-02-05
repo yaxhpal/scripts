@@ -1,0 +1,3 @@
+koha-tmpl/module/file-001.pl
+koha-tmpl/images/homepage/image.jpg
+koha-tmpl/opac-tmpl/templates.tmpl
