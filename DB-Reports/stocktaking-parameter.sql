@@ -96,3 +96,25 @@ WHERE items.homebranch = <<Home branch>>
 AND   items.itemlost != 0
 AND   items.itype NOT LIKE 'EBRA%'
 ORDER BY items.itype, items.dateaccessioned,  items.datelastseen;
+
+
+-- List of items which are issued out but also withdrawn
+SELECT /* Checkouts and Withdrawn */
+    items.itype as 'Item Type',
+    biblio.biblionumber as 'Biblio Number',
+    items.barcode as 'Barcode',
+    items.dateaccessioned as ' Accession Date',  
+    items.datelastseen as 'Last Seen Date',
+    issues.issuedate as 'Issue Date',
+    items.wthdrawn_date as 'Withdrawn Date',
+    biblio.title as 'Title',
+    biblio.author as 'Author'
+FROM
+items
+LEFT JOIN biblio ON (items.biblionumber = biblio.biblionumber)
+LEFT JOIN issues ON (items.itemnumber = issues.itemnumber)
+WHERE items.homebranch = <<Home branch>>
+AND   items.wthdrawn != 0
+AND   items.itype NOT LIKE 'EBRA%'
+AND   issues.itemnumber IS NOT NULL
+ORDER BY items.itype, items.dateaccessioned, issues.issuedate;
